@@ -29,6 +29,9 @@
 #include <string.h>
 
 namespace hnswlib {
+    template <typename...> class SpaceInterface;
+
+
     typedef size_t labeltype;
 
     template <typename T>
@@ -54,12 +57,25 @@ namespace hnswlib {
 
 
     template<typename MTYPE>
-    class SpaceInterface {
+    class SpaceInterface<MTYPE> {
     public:
         //virtual void search(void *);
         virtual size_t get_data_size() = 0;
 
         virtual DISTFUNC<MTYPE> get_dist_func() = 0;
+
+        virtual void *get_dist_func_param() = 0;
+
+        virtual ~SpaceInterface() {}
+    };
+
+    template<typename MTYPE, typename NTYPE>
+    class SpaceInterface<MTYPE, NTYPE> {
+    public:
+        //virtual void search(void *);
+        virtual size_t get_data_size() = 0;
+
+        virtual DISTFUNC<NTYPE> get_dist_func() = 0;
 
         virtual void *get_dist_func_param() = 0;
 
