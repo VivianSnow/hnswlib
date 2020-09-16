@@ -13,7 +13,7 @@ namespace hnswlib {
         size_t qty16 = qty / 16;
 
 
-        const uint16_t *pEnd1 = pVect2 + 16 * qty16;
+        const float *pEnd1 = pVect1 + 16 * qty16;
 
         __m256 sum256 = _mm256_set1_ps(0);
 

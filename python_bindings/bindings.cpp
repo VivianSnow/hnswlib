@@ -83,7 +83,7 @@ public:
         else if(space_name=="ip") {
             l2space = new hnswlib::InnerProductSpace(dim);
         }
-        else if(space_name=='ip_fp16') {
+        else if(space_name=="ip_fp16") {
             l2space = new hnswlib::InnerProductSpaceFP16(dim);
         }
         else if(space_name=="cosine") {
