@@ -75,6 +75,7 @@ namespace hnswlib {
         std::vector<std::pair<dist_t, labeltype>> searchKnn(const void*, size_t, Comp) {
         }
         virtual void saveIndex(const std::string &location)=0;
+        virtual void saveIndex_fp16(const std::string &location)=0;
         virtual ~AlgorithmInterface(){
         }
     };

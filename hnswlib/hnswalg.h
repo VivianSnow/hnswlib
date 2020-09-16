@@ -596,6 +596,80 @@ namespace hnswlib {
             output.close();
         }
 
+        //add by cz
+        inline void fp32_to_fp16(float *src, uint16_t *dst, size_t dim){
+            for (auto i = 0; i < dim / 8; i++) {
+                _mm_storeu_si128((__m128i*)dst, _mm256_cvtps_ph(_mm256_loadu_ps(src), (_MM_FROUND_TO_NEAREST_INT |_MM_FROUND_NO_EXC)));
+                src += 8;
+                dst += 8;
+            }
+        }
+
+        void trans(char *src, char *dst, size_t element_count) {
+            auto fp16_size = data_size_ / 2;
+            for (size_t i = 0; i < element_count; i++) {
+                memcpy(dst, src, size_links_level0_);
+                src += size_links_level0_;
+                dst += size_links_level0_;
+                fp32_to_fp16((float *) src, (uint16_t *) dst, *((size_t *) dist_func_param_));
+                src += data_size_;
+                dst += fp16_size;
+                memcpy(dst, src, sizeof(labeltype));
+                src += sizeof(labeltype);
+                dst += sizeof(labeltype);
+            }
+        }
+
+        void saveIndex_fp16(const std::string &location) {
+            std::ofstream output(location, std::ios::binary);
+            std::streampos position;
+
+            //add by cz for trans to fp16
+            size_t data_size_fp16 = data_size_ / 2;
+            size_t size_data_per_element_fp16 = (size_data_per_element_ - data_size_) + data_size_fp16;
+            fprintf(stderr, "[FP16] data_size_fp16 = %llu, size_data_per_element_fp16 = %llu\n", data_size_fp16, size_data_per_element_fp16);
+
+            char* data_level0_memory_fp16 = (char *) malloc(cur_element_count * size_data_per_element_fp16);
+            if (data_level0_memory_ == nullptr) {
+                throw std::runtime_error("Not enough memory");
+            }
+            fprintf(stderr, "[FP16] malloc data_level0_memory_fp16 success");
+
+            fprintf(stderr, "[FP16] start trans float to fp16\n");
+            trans(data_level0_memory_, data_level0_memory_fp16, cur_element_count);
+            fprintf(stderr, "[FP16] trans to fp16 finish\n");
+
+            size_t label_offset_fp16 = size_links_level0_ + data_size_fp16;
+            //end add by cz
+
+            writeBinaryPOD(output, offsetLevel0_);
+            writeBinaryPOD(output, max_elements_);
+            writeBinaryPOD(output, cur_element_count);
+            writeBinaryPOD(output, size_data_per_element_fp16);
+            writeBinaryPOD(output, label_offset_fp16);
+            writeBinaryPOD(output, offsetData_);
+            writeBinaryPOD(output, maxlevel_);
+            writeBinaryPOD(output, enterpoint_node_);
+            writeBinaryPOD(output, maxM_);
+
+            writeBinaryPOD(output, maxM0_);
+            writeBinaryPOD(output, M_);
+            writeBinaryPOD(output, mult_);
+            writeBinaryPOD(output, ef_construction_);
+
+            output.write(size_data_per_element_fp16, cur_element_count * size_data_per_element_fp16);
+            free(data_level0_memory_fp16);
+            data_level0_memory_fp16 = nullptr;
+
+            for (size_t i = 0; i < cur_element_count; i++) {
+                unsigned int linkListSize = element_levels_[i] > 0 ? size_links_per_element_ * element_levels_[i] : 0;
+                writeBinaryPOD(output, linkListSize);
+                if (linkListSize)
+                    output.write(linkLists_[i], linkListSize);
+            }
+            output.close();
+        }
+
         void loadIndex(const std::string &location, SpaceInterface<dist_t> *s, size_t max_elements_i=0) {
 
 
