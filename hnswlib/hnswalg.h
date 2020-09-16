@@ -657,7 +657,7 @@ namespace hnswlib {
             writeBinaryPOD(output, mult_);
             writeBinaryPOD(output, ef_construction_);
 
-            output.write(size_data_per_element_fp16, cur_element_count * size_data_per_element_fp16);
+            output.write(data_level0_memory_fp16, cur_element_count * size_data_per_element_fp16);;
             free(data_level0_memory_fp16);
             data_level0_memory_fp16 = nullptr;
 

@@ -83,6 +83,9 @@ public:
         else if(space_name=="ip") {
             l2space = new hnswlib::InnerProductSpace(dim);
         }
+        else if(space_name=='ip_fp16') {
+            l2space = new hnswlib::InnerProductSpaceFP16(dim);
+        }
         else if(space_name=="cosine") {
             l2space = new hnswlib::InnerProductSpace(dim);
             normalize=true;
@@ -121,6 +124,10 @@ public:
 
     void saveIndex(const std::string &path_to_index) {
         appr_alg->saveIndex(path_to_index);
+    }
+
+    void saveIndex_fp16(const std::string &path_to_index) {
+        appr_alg->saveIndex_fp16(path_to_index);
     }
 
     void loadIndex(const std::string &path_to_index, size_t max_elements) {
@@ -402,6 +409,7 @@ PYBIND11_PLUGIN(hnswlib) {
         .def("get_M", &Index<float>::get_M)
         .def("set_num_threads", &Index<float>::set_num_threads, py::arg("num_threads"))
         .def("save_index", &Index<float>::saveIndex, py::arg("path_to_index"))
+        .def("save_index_fp16", &Index<float>::saveIndex_fp16, py::arg("path_to_index"))
         .def("load_index", &Index<float>::loadIndex, py::arg("path_to_index"), py::arg("max_elements")=0)
         .def("mark_deleted", &Index<float>::markDeleted, py::arg("label"))
         .def("resize_index", &Index<float>::resizeIndex, py::arg("new_size"))
